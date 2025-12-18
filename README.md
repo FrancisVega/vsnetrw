@@ -1,9 +1,5 @@
 # vnerdtree
-A [split file explorer][oil-and-vinegar] for vscode, inspired by [netrw][netrw], [vim-vinegar][vinegar], [dired][dired], [vim-dirvish][dirvish], and [NERDTree][nerdtree].
-
-<p align="center">
-<img width="800" src="https://user-images.githubusercontent.com/1266011/178103105-1cc41f9e-2b19-4d2c-8e64-7f9c688575e6.png" alt="vnerdtree in action" />
-</p>
+A [split file explorer][oil-and-vinegar] for vscode, inspired by vsnetrw, NERDTree, [netrw][netrw], [vim-vinegar][vinegar], [dired][dired], [vim-dirvish][dirvish], and [NERDTree][nerdtree].
 
 ## Features
 
