@@ -11,7 +11,6 @@ A [split file explorer][oil-and-vinegar] for vscode, inspired by [netrw][netrw],
 - **Full paths toggle**: Toggle between showing just file names or full paths with <kbd>Shift+P</kbd>
 - **Cursor position memory**: Automatically saves and restores cursor position per directory
 - **Initial directory navigation**: Jump back to the first directory you opened with <kbd>.</kbd>
-- **Native line numbers**: Respects your VSCode line number settings (including relative line numbers)
 - **Smart keybindings**: Won't interfere when typing in search boxes or input fields
 
 ## Shortcuts

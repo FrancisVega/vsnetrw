@@ -50,6 +50,11 @@
 				"command": "vsnetrw.openInitial",
 				"title": "Open Initial Directory",
 				"category": "vsnetrw"
+			},
+			{
+				"command": "vsnetrw.revealInFileManager",
+				"title": "Reveal in File Manager",
+				"category": "vsnetrw"
 			}
 		],
 		"keybindings": [
@@ -117,6 +122,11 @@
 				"command": "vsnetrw.openInitial",
 				"key": ".",
 				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+			},
+			{
+				"command": "vsnetrw.revealInFileManager",
+				"key": "o",
+				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			}
 		],
 		"grammars": [
@@ -128,6 +138,7 @@
 		],
 		"configurationDefaults": {
 			"[vsnetrw]": {
+				"editor.lineNumbers": "off",
 				"editor.minimap.enabled": false,
 				"editor.renderWhitespace": "none"
 			}

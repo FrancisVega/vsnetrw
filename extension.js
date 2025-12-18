@@ -1,6 +1,7 @@
 let assert = require("node:assert");
 let path = require("node:path");
-let { homedir } = require("node:os");
+let { homedir, platform } = require("node:os");
+let { spawn } = require("node:child_process");
 let { window, workspace, commands, Uri, EventEmitter, FileType, Selection, languages, Range, Diagnostic, DiagnosticRelatedInformation, Location, ViewColumn, TextEditorRevealType, extensions } = require("vscode");
 
 /**
@@ -534,6 +535,28 @@ async function openInitialDirectory() {
 }
 
 /**
+ * Opens the current directory in Finder (macOS) or File Explorer (Windows/Linux).
+ */
+async function revealInFileManager() {
+  let dir = getCurrentDir();
+  
+  try {
+    if (platform() === "darwin") {
+      // macOS: use 'open' command
+      spawn("open", [dir], { detached: true });
+    } else if (platform() === "win32") {
+      // Windows: use 'explorer' command
+      spawn("explorer", [dir], { detached: true });
+    } else {
+      // Linux: try 'xdg-open'
+      spawn("xdg-open", [dir], { detached: true });
+    }
+  } catch (err) {
+    window.showErrorMessage(`Failed to open file manager: ${err.message}`);
+  }
+}
+
+/**
  * Gets Git status symbol for a file or directory.
  * @param {Uri} fileUri The URI of the file/directory
  * @param {string} baseDir The base directory of the explorer
@@ -711,6 +734,7 @@ function activate(context) {
     commands.registerCommand("vsnetrw.openParent", openParentDirectory),
     commands.registerCommand("vsnetrw.openHome", openHomeDirectory),
     commands.registerCommand("vsnetrw.openInitial", openInitialDirectory),
+    commands.registerCommand("vsnetrw.revealInFileManager", revealInFileManager),
     commands.registerCommand("vsnetrw.rename", renameFileUnderCursor),
     commands.registerCommand("vsnetrw.delete", deleteFileUnderCursor),
     commands.registerCommand("vsnetrw.create", createFile),
