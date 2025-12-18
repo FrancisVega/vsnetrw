@@ -2,6 +2,9 @@
   "scopeName": "source.vsnetrw",
   "patterns": [
     {
+      "include": "#gitStatus"
+    },
+    {
       "include": "#directory"
     },
     {
@@ -16,6 +19,15 @@
     "hidden": {
       "match": "(^|/)\\.[^/]*/?$",
       "name": "comment"
+    },
+    "gitStatus": {
+      "match": "\\s+(M|A|D|U|R|C)$",
+      "name": "markup.inserted",
+      "captures": {
+        "1": {
+          "name": "constant.language"
+        }
+      }
     }
   }
 }

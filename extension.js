@@ -1,7 +1,7 @@
 let assert = require("node:assert");
 let path = require("node:path");
 let { homedir } = require("node:os");
-let { window, workspace, commands, Uri, EventEmitter, FileType, Selection, languages, Range, Diagnostic, DiagnosticRelatedInformation, Location, ViewColumn, TextEditorRevealType } = require("vscode");
+let { window, workspace, commands, Uri, EventEmitter, FileType, Selection, languages, Range, Diagnostic, DiagnosticRelatedInformation, Location, ViewColumn, TextEditorRevealType, extensions } = require("vscode");
 
 /**
  * The scheme is used to associate vsnetrw documents with the text content provider
@@ -23,6 +23,12 @@ let previousFilePath = "";
  * Map of directory URIs to their last cursor line position.
  */
 let cursorPositions = new Map();
+
+/**
+ * The initial directory where the explorer was first opened in this session.
+ * @type {string | null}
+ */
+let initialDirectory = null;
 
 /**
  * Whether to show full paths instead of just file names.
@@ -203,19 +209,22 @@ async function getFileType(file) {
  * @returns {string} The full path to the file
  */
 function getFilePathFromLine(lineText, baseDir) {
+  // Remove Git status suffix if present (e.g., " M", " A", " D", " U", " R", " C")
+  let text = lineText.replace(/\s+[MADURC]$/, "");
+  
   // Handle parent directory reference
-  if (lineText === "../") {
+  if (text === "../") {
     return path.dirname(baseDir);
   }
   
   // If showing full paths, the line text is already a full path
   if (showFullPaths) {
     // Remove trailing slash for directories
-    return lineText.endsWith("/") ? lineText.slice(0, -1) : lineText;
+    return text.endsWith("/") ? text.slice(0, -1) : text;
   }
   
   // Otherwise, it's a relative path
-  return path.join(baseDir, lineText);
+  return path.join(baseDir, text);
 }
 
 /**
@@ -412,11 +421,25 @@ function getInitialDir() {
 }
 
 /**
- * Opens a new explorer editor.
+ * Opens a new explorer editor or closes it if already open.
  */
 async function openNewExplorer(dir = getInitialDir()) {
   // For some reason vim.normalModeKeyBindings pass an empty array
   if (Array.isArray(dir)) dir = getInitialDir();
+  
+  // If vsnetrw is already open, close it
+  let editor = window.activeTextEditor;
+  if (editor?.document.uri.scheme === scheme) {
+    await closeExplorer();
+    return;
+  }
+  
+  // Save initial directory if this is the first time opening in this session
+  if (initialDirectory === null) {
+    initialDirectory = dir;
+  }
+  
+  // Otherwise open it
   await openExplorer(dir);
 }
 
@@ -495,6 +518,86 @@ async function openHomeDirectory() {
 }
 
 /**
+ * Opens the initial directory where the explorer was first opened.
+ */
+async function openInitialDirectory() {
+  if (initialDirectory === null) {
+    // If no initial directory was saved, use the current directory or home
+    let dir = getInitialDir();
+    // Also save it as the initial directory for future use
+    initialDirectory = dir;
+    openExplorer(dir);
+  } else {
+    saveCursorPosition();
+    openExplorer(initialDirectory);
+  }
+}
+
+/**
+ * Gets Git status symbol for a file or directory.
+ * @param {Uri} fileUri The URI of the file/directory
+ * @param {string} baseDir The base directory of the explorer
+ * @returns {Promise<string>} Git status symbol (M, A, D, U, etc.) or empty string
+ */
+async function getGitStatus(fileUri, baseDir) {
+  try {
+    let gitExtension = extensions.getExtension("vscode.git");
+    if (!gitExtension || !gitExtension.isActive) {
+      return "";
+    }
+
+    let git = gitExtension.exports;
+    if (!git || !git.getAPI) {
+      return "";
+    }
+
+    let gitApi = git.getAPI(1);
+    if (!gitApi) {
+      return "";
+    }
+
+    let repository = gitApi.getRepository(fileUri);
+    if (!repository) {
+      return "";
+    }
+
+    let filePath = fileUri.fsPath;
+
+    // Check index changes (staged) first, as staged takes priority
+    let indexChange = repository.state.indexChanges.find((/** @type {any} */ change) => {
+      return change.uri.fsPath === filePath;
+    });
+
+    if (indexChange) {
+      // Status values: 1=Modified, 2=Added, 3=Deleted, 5=Renamed, 6=Copied
+      let status = indexChange.status;
+      if (status === 1 || status === 5 || status === 6) return "M"; // Modified, Renamed, or Copied (VSCode shows M for all)
+      if (status === 2) return "A"; // Added
+      if (status === 3) return "D"; // Deleted
+    }
+
+    // Check working tree changes (unstaged)
+    let workingTreeChange = repository.state.workingTreeChanges.find((/** @type {any} */ change) => {
+      return change.uri.fsPath === filePath;
+    });
+
+    if (workingTreeChange) {
+      // Status values: 1=Modified, 2=Added, 3=Deleted, 4=Untracked, 5=Renamed, 6=Copied
+      // VSCode shows M for Modified, Renamed, and Copied files
+      let status = workingTreeChange.status;
+      if (status === 1 || status === 5 || status === 6) return "M"; // Modified, Renamed, or Copied
+      if (status === 2) return "A"; // Added
+      if (status === 3) return "D"; // Deleted
+      if (status === 4) return "U"; // Untracked
+    }
+
+    return "";
+  } catch (err) {
+    return "";
+  }
+}
+
+/**
  * Renders the text content for the current vsnetrw document.
  * @param {Uri} documentUri
  * @returns {Promise<string>}
@@ -510,14 +613,17 @@ async function provideTextDocumentContent(documentUri) {
       aName < bName ? -1 : 1;
   });
 
-  let listings = results.map(([name, type]) => {
-    if (showFullPaths) {
-      let fullPath = path.join(pathName, name);
-      return type & FileType.Directory ? `${fullPath}/` : fullPath;
-    } else {
-      return type & FileType.Directory ? `${name}/` : name;
-    }
-  });
+  let listings = await Promise.all(results.map(async ([name, type]) => {
+    let filePath = path.join(pathName, name);
+    let fileUri = Uri.file(filePath);
+    let gitStatus = await getGitStatus(fileUri, pathName);
+    
+    let fileName = showFullPaths 
+      ? (type & FileType.Directory ? `${filePath}/` : filePath)
+      : (type & FileType.Directory ? `${name}/` : name);
+    
+    return gitStatus ? `${fileName} ${gitStatus}` : fileName;
+  }));
 
   let hasParent = path.dirname(pathName) !== pathName;
   if (hasParent) listings.unshift("../");
@@ -604,6 +710,7 @@ function activate(context) {
     commands.registerCommand("vsnetrw.openAtCursorInVerticalSplit", openFileUnderCursorInVerticalSplit),
     commands.registerCommand("vsnetrw.openParent", openParentDirectory),
     commands.registerCommand("vsnetrw.openHome", openHomeDirectory),
+    commands.registerCommand("vsnetrw.openInitial", openInitialDirectory),
     commands.registerCommand("vsnetrw.rename", renameFileUnderCursor),
     commands.registerCommand("vsnetrw.delete", deleteFileUnderCursor),
     commands.registerCommand("vsnetrw.create", createFile),

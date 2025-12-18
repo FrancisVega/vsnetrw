@@ -45,6 +45,11 @@
 				"command": "vsnetrw.toggleFullPaths",
 				"title": "Toggle Full Paths",
 				"category": "vsnetrw"
+			},
+			{
+				"command": "vsnetrw.openInitial",
+				"title": "Open Initial Directory",
+				"category": "vsnetrw"
 			}
 		],
 		"keybindings": [
@@ -54,17 +59,17 @@
 				"when": "!activeEditor && !inputFocus && !inputBoxFocus && !searchViewletFocus"
 			},
 			{
-				"command": "vsnetrw.close",
-				"key": "escape",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
-			},
-			{
 				"command": "vsnetrw.openAtCursor",
 				"key": "enter",
 				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
 				"command": "vsnetrw.openParent",
+				"key": "backspace",
+				"when": "editorTextFocus && editorLangId == vsnetrw"
+			},
+			{
+				"command": "vsnetrw.close",
 				"key": "-",
 				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
@@ -106,6 +111,11 @@
 			{
 				"command": "vsnetrw.toggleFullPaths",
 				"key": "shift+p",
+				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+			},
+			{
+				"command": "vsnetrw.openInitial",
+				"key": ".",
 				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			}
 		],
