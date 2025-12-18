@@ -1,7 +1,7 @@
 let assert = require("node:assert");
 let path = require("node:path");
 let { homedir } = require("node:os");
-let { window, workspace, commands, Uri, EventEmitter, FileType, Selection, languages, Range, Diagnostic, DiagnosticRelatedInformation, Location, ViewColumn } = require("vscode");
+let { window, workspace, commands, Uri, EventEmitter, FileType, Selection, languages, Range, Diagnostic, DiagnosticRelatedInformation, Location, ViewColumn, TextEditorRevealType } = require("vscode");
 
 /**
  * The scheme is used to associate vsnetrw documents with the text content provider
@@ -18,6 +18,12 @@ const languageId = "vsnetrw";
  * The path to the file that was open before the current explorer.
  */
 let previousFilePath = "";
+
+/**
+ * Map of directory URIs to their last cursor line position.
+ */
+let cursorPositions = new Map();
+
 
 /**
  * Creates a vsnetrw document uri for a given path.
@@ -43,6 +49,18 @@ function getCurrentDir() {
  * Event emitter used to trigger updates for the text document content provider.
  */
 let uriChangeEmitter = new EventEmitter();
+
+/**
+ * Save the current cursor position for the active vsnetrw document.
+ */
+function saveCursorPosition() {
+  let editor = window.activeTextEditor;
+  if (editor?.document.uri.scheme === scheme) {
+    let uri = editor.document.uri.toString();
+    let line = editor.selection.active.line;
+    cursorPositions.set(uri, line);
+  }
+}
 
 /**
  * Refresh the current vsnetrw document.
@@ -116,10 +134,23 @@ async function openExplorer(dirName) {
   }
 
   let uri = createUri(dirName);
+  let uriString = uri.toString();
   let doc = await workspace.openTextDocument(uri);
   await languages.setTextDocumentLanguage(doc, languageId);
-  await window.showTextDocument(doc, { preview: true });
-  moveCursorToPreviousFile();
+  let newEditor = await window.showTextDocument(doc, { preview: true });
+  
+  // Restore saved cursor position if available
+  let savedLine = cursorPositions.get(uriString);
+  if (savedLine !== undefined && savedLine >= 0) {
+    setTimeout(() => {
+      if (newEditor && newEditor.document.uri.toString() === uriString) {
+        let lineCount = newEditor.document.lineCount;
+        let line = Math.min(savedLine, lineCount - 1);
+        newEditor.selections = [new Selection(line, 0, line, 0)];
+        newEditor.revealRange(new Range(line, 0, line, 0), TextEditorRevealType.InCenter);
+      }
+    }, 0);
+  }
 }
 
 /**
@@ -201,6 +232,7 @@ async function openFileInVscodeEditor(fileName, viewColumn) {
 async function closeExplorer() {
   let editor = window.activeTextEditor;
   if (editor?.document.uri.scheme === scheme) {
+    saveCursorPosition();
     await commands.executeCommand("workbench.action.closeActiveEditor");
   }
 }
@@ -366,6 +398,7 @@ async function openFileUnderCursor(viewColumn) {
   let stat = await workspace.fs.stat(uri);
 
   if (stat.type & FileType.Directory) {
+    saveCursorPosition();
     await openExplorer(newPath);
   } else {
     await openFileInVscodeEditor(newPath, viewColumn);
@@ -394,6 +427,7 @@ async function openFileUnderCursorInVerticalSplit() {
 async function openParentDirectory() {
   let editor = window.activeTextEditor;
   assert(editor, "No active editor");
+  saveCursorPosition();
   let pathName = editor.document.uri.path;
   let parentPath = path.dirname(pathName);
   openExplorer(parentPath);
@@ -408,6 +442,7 @@ async function openHomeDirectory() {
   let editor = window.activeTextEditor;
 
   if (editor) {
+    saveCursorPosition();
     let workspaceFolder = (
       workspace.getWorkspaceFolder(editor.document.uri) ||
       workspace.workspaceFolders?.[0]
