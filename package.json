@@ -1,5 +1,5 @@
 {
-	"name": "vsnetrw",
+	"name": "vnerdtree",
 	"version": "0.3.2",
 	"description": "A vscode split explorer for files",
 	"publisher": "danprince",
@@ -9,7 +9,8 @@
 		"vim",
 		"vim-vinegar",
 		"dired",
-		"explorer"
+		"explorer",
+		"nerdtree"
 	],
 	"main": "extension.js",
 	"license": "Unlicense",
@@ -23,181 +24,181 @@
 		"local-install": "yarn build && code --install-extension *.vsix"
 	},
 	"activationEvents": [
-		"onCommand:vsnetrw.open"
+		"onCommand:vnerdtree.open"
 	],
 	"contributes": {
 		"languages": [
 			{
-				"id": "vsnetrw",
+				"id": "vnerdtree",
 				"filenames": [
-					"vsnetrw"
+					"vnerdtree"
 				],
 				"configuration": "./language-configuration.json"
 			}
 		],
 		"commands": [
 			{
-				"command": "vsnetrw.open",
+				"command": "vnerdtree.open",
 				"title": "Open Explorer",
-				"category": "vsnetrw"
+				"category": "vnerdtree"
 			},
 			{
-				"command": "vsnetrw.toggleFullPaths",
+				"command": "vnerdtree.toggleFullPaths",
 				"title": "Toggle Full Paths",
-				"category": "vsnetrw"
+				"category": "vnerdtree"
 			},
 			{
-				"command": "vsnetrw.toggleBookmarks",
+				"command": "vnerdtree.toggleBookmarks",
 				"title": "Toggle Bookmarks",
-				"category": "vsnetrw"
+				"category": "vnerdtree"
 			},
 			{
-				"command": "vsnetrw.toggleHelp",
+				"command": "vnerdtree.toggleHelp",
 				"title": "Toggle Help",
-				"category": "vsnetrw"
+				"category": "vnerdtree"
 			},
 			{
-				"command": "vsnetrw.toggleHidden",
+				"command": "vnerdtree.toggleHidden",
 				"title": "Toggle Hidden Files",
-				"category": "vsnetrw"
+				"category": "vnerdtree"
 			},
 			{
-				"command": "vsnetrw.openInitial",
+				"command": "vnerdtree.openInitial",
 				"title": "Open Initial Directory",
-				"category": "vsnetrw"
+				"category": "vnerdtree"
 			},
 			{
-				"command": "vsnetrw.revealInFileManager",
+				"command": "vnerdtree.revealInFileManager",
 				"title": "Reveal in File Manager",
-				"category": "vsnetrw"
+				"category": "vnerdtree"
 			},
 			{
-				"command": "vsnetrw.addBookmark",
+				"command": "vnerdtree.addBookmark",
 				"title": "Add Bookmark",
-				"category": "vsnetrw"
+				"category": "vnerdtree"
 			},
 			{
-				"command": "vsnetrw.deleteBookmark",
+				"command": "vnerdtree.deleteBookmark",
 				"title": "Delete Bookmark",
-				"category": "vsnetrw"
+				"category": "vnerdtree"
 			},
 			{
-				"command": "vsnetrw.jumpToBookmark",
+				"command": "vnerdtree.jumpToBookmark",
 				"title": "Jump to Bookmark",
-				"category": "vsnetrw"
+				"category": "vnerdtree"
 			}
 		],
 		"keybindings": [
 			{
-				"command": "vsnetrw.open",
+				"command": "vnerdtree.open",
 				"key": "-",
 				"when": "!activeEditor && !inputFocus && !inputBoxFocus && !searchViewletFocus"
 			},
 			{
-				"command": "vsnetrw.openAtCursor",
+				"command": "vnerdtree.openAtCursor",
 				"key": "enter",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.openParent",
+				"command": "vnerdtree.openParent",
 				"key": "backspace",
-				"when": "editorTextFocus && editorLangId == vsnetrw"
+				"when": "editorTextFocus && editorLangId == vnerdtree"
 			},
 			{
-				"command": "vsnetrw.close",
+				"command": "vnerdtree.close",
 				"key": "-",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.openHome",
+				"command": "vnerdtree.openHome",
 				"key": "shift+`",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.rename",
+				"command": "vnerdtree.rename",
 				"key": "shift+r",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.delete",
+				"command": "vnerdtree.delete",
 				"key": "shift+d",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.delete",
+				"command": "vnerdtree.delete",
 				"key": "delete",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.create",
+				"command": "vnerdtree.create",
 				"key": "shift+5",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.createDir",
+				"command": "vnerdtree.createDir",
 				"key": "d",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.refresh",
+				"command": "vnerdtree.refresh",
 				"key": "ctrl+l",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.toggleFullPaths",
+				"command": "vnerdtree.toggleFullPaths",
 				"key": "shift+p",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.openInitial",
+				"command": "vnerdtree.openInitial",
 				"key": ".",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.revealInFileManager",
+				"command": "vnerdtree.revealInFileManager",
 				"key": "o",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.addBookmark",
+				"command": "vnerdtree.addBookmark",
 				"key": "m",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.deleteBookmark",
+				"command": "vnerdtree.deleteBookmark",
 				"key": "shift+m",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.jumpToBookmark",
+				"command": "vnerdtree.jumpToBookmark",
 				"key": "b",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.toggleBookmarks",
+				"command": "vnerdtree.toggleBookmarks",
 				"key": "shift+b",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.toggleHelp",
+				"command": "vnerdtree.toggleHelp",
 				"key": "shift+h",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			},
 			{
-				"command": "vsnetrw.toggleHidden",
+				"command": "vnerdtree.toggleHidden",
 				"key": "i",
-				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+				"when": "editorTextFocus && editorLangId == vnerdtree && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			}
 		],
 		"grammars": [
 			{
-				"language": "vsnetrw",
-				"scopeName": "source.vsnetrw",
-				"path": "./vsnetrw.tmLanguage.json"
+				"language": "vnerdtree",
+				"scopeName": "source.vnerdtree",
+				"path": "./vnerdtree.tmLanguage.json"
 			}
 		],
 		"configurationDefaults": {
-			"[vsnetrw]": {
+			"[vnerdtree]": {
 				"editor.lineNumbers": "off",
 				"editor.minimap.enabled": false,
 				"editor.renderWhitespace": "none"
@@ -213,11 +214,5 @@
 		"mocha": "^10.0.0",
 		"typescript": "^4.7.4",
 		"vsce": "^2.9.2"
-	},
-	"__metadata": {
-		"id": "668fbee7-65fc-4157-8c12-f76e3da227fd",
-		"publisherDisplayName": "Dan Prince",
-		"publisherId": "4c57e270-dfdc-4cc4-a9a8-3acfd4f15f5b",
-		"isPreReleaseVersion": false
 	}
 }

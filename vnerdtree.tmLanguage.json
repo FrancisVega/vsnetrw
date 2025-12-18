@@ -1,5 +1,5 @@
 {
-  "scopeName": "source.vsnetrw",
+  "scopeName": "source.vnerdtree",
   "patterns": [
     {
       "include": "#help"
@@ -22,7 +22,7 @@
   ],
   "repository": {
     "help": {
-      "match": "^(vsnetrw|.*:.*)$",
+      "match": "^(vnerdtree|.*:.*)$",
       "name": "comment"
     },
     "bookmark": {

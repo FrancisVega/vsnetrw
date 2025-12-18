@@ -22,15 +22,15 @@ let {
 } = require("vscode");
 
 /**
- * The scheme is used to associate vsnetrw documents with the text content provider
+ * The scheme is used to associate vnerdtree documents with the text content provider
  * that renders the directory listing.
  */
-const scheme = "vsnetrw";
+const scheme = "vnerdtree";
 
 /**
- * The editorLanguageId used to identify vsnetrw buffers.
+ * The editorLanguageId used to identify vnerdtree buffers.
  */
-const languageId = "vsnetrw";
+const languageId = "vnerdtree";
 
 /**
  * The path to the file that was open before the current explorer.
@@ -81,7 +81,7 @@ let extensionContext = null;
 let bookmarks = new Map();
 
 /**
- * Creates a vsnetrw document uri for a given path.
+ * Creates a vnerdtree document uri for a given path.
  *
  * @param {string} dirName The directory to open
  * @returns {Uri} The path as a Uri
@@ -92,13 +92,13 @@ function createUri(dirName) {
 
 /**
  * Get the current directory from the current document's Uri.
- * @returns The path to the directory that is open in the current vsnetrw document.
+ * @returns The path to the directory that is open in the current vnerdtree document.
  */
 function getCurrentDir() {
   let editor = window.activeTextEditor;
   assert(
     editor && editor.document.uri.scheme === scheme,
-    "Not a vsnetrw editor"
+    "Not a vnerdtree editor"
   );
   return editor.document.uri.path;
 }
@@ -109,7 +109,7 @@ function getCurrentDir() {
 let uriChangeEmitter = new EventEmitter();
 
 /**
- * Save the current cursor position for the active vsnetrw document.
+ * Save the current cursor position for the active vnerdtree document.
  */
 function saveCursorPosition() {
   let editor = window.activeTextEditor;
@@ -121,7 +121,7 @@ function saveCursorPosition() {
 }
 
 /**
- * Refresh the current vsnetrw document.
+ * Refresh the current vnerdtree document.
  */
 function refresh() {
   let dir = getCurrentDir();
@@ -214,7 +214,7 @@ function moveCursorToPreviousFile() {
 }
 
 /**
- * Open a new vsnetrw document for a given directory.
+ * Open a new vnerdtree document for a given directory.
  * @param {string} dirName
  */
 async function openExplorer(dirName) {
@@ -287,7 +287,7 @@ function getFilePathFromLine(lineText, baseDir) {
   // Skip help lines and bookmark separator line
   if (
     lineText === "-- BOOKMARKS --" ||
-    lineText.startsWith("vsnetrw") ||
+    lineText.startsWith("vnerdtree") ||
     lineText.includes(": ")
   ) {
     return "";
@@ -322,7 +322,7 @@ function getFilePathFromLine(lineText, baseDir) {
 }
 
 /**
- * Returns the name of the file under the cursor in the current vsnetrw
+ * Returns the name of the file under the cursor in the current vnerdtree
  * document.
  * @returns {string}
  */
@@ -369,7 +369,7 @@ async function openFileInVscodeEditor(fileName, viewColumn) {
 }
 
 /**
- * Close the vsnetrw explorer if it is the active editor.
+ * Close the vnerdtree explorer if it is the active editor.
  */
 async function closeExplorer() {
   let editor = window.activeTextEditor;
@@ -381,7 +381,7 @@ async function closeExplorer() {
 
 /**
  * Prompts the user to rename the file that is currently under their cursor in
- * a vsnetrw document.
+ * a vnerdtree document.
  *
  * If the name includes a path that does not exist, then it will be created.
  */
@@ -433,7 +433,7 @@ async function renameFileUnderCursor() {
 }
 
 /**
- * Attempt to delete the file that is under the cursor in a vsnetrw document.
+ * Attempt to delete the file that is under the cursor in a vnerdtree document.
  */
 async function deleteFileUnderCursor() {
   let files = getLinesUnderCursor();
@@ -531,7 +531,7 @@ async function openNewExplorer(dir = getInitialDir()) {
   // For some reason vim.normalModeKeyBindings pass an empty array
   if (Array.isArray(dir)) dir = getInitialDir();
 
-  // If vsnetrw is already open, close it
+  // If vnerdtree is already open, close it
   let editor = window.activeTextEditor;
   if (editor?.document.uri.scheme === scheme) {
     await closeExplorer();
@@ -552,7 +552,7 @@ async function openNewExplorer(dir = getInitialDir()) {
  *
  * If there is a file under the cursor, it will open in a vscode text
  * editor. If there is a directory under the cursor, then it will open in a
- * new vsnetrw document.
+ * new vnerdtree document.
  * @param {ViewColumn} [viewColumn]
  */
 async function openFileUnderCursor(viewColumn) {
@@ -596,7 +596,7 @@ async function openFileUnderCursorInVerticalSplit() {
 }
 
 /**
- * Opens the parent directory in a vsnetrw document.
+ * Opens the parent directory in a vnerdtree document.
  */
 async function openParentDirectory() {
   let editor = window.activeTextEditor;
@@ -608,7 +608,7 @@ async function openParentDirectory() {
 }
 
 /**
- * Opens the home directory in a vsnetrw document. If there's an active workspace folder
+ * Opens the home directory in a vnerdtree document. If there's an active workspace folder
  * it will be used, otherwise the user's home directory is used.
  */
 async function openHomeDirectory() {
@@ -652,7 +652,7 @@ function loadBookmarks() {
   if (!extensionContext) return;
 
   let savedBookmarks = extensionContext.globalState.get(
-    "vsnetrw.bookmarks",
+    "vnerdtree.bookmarks",
     {}
   );
   bookmarks.clear();
@@ -674,7 +674,7 @@ async function saveBookmarks() {
   for (let [key, bookmarkPath] of bookmarks.entries()) {
     bookmarksObj[key] = bookmarkPath;
   }
-  await extensionContext.globalState.update("vsnetrw.bookmarks", bookmarksObj);
+  await extensionContext.globalState.update("vnerdtree.bookmarks", bookmarksObj);
 }
 
 /**
@@ -809,7 +809,7 @@ async function getGitStatus(fileUri, baseDir) {
 }
 
 /**
- * Renders the text content for the current vsnetrw document.
+ * Renders the text content for the current vnerdtree document.
  * @param {Uri} documentUri
  * @returns {Promise<string>}
  */
@@ -858,7 +858,7 @@ async function provideTextDocumentContent(documentUri) {
   if (showHelp) {
     let helpText = [
       "////////////////////",
-      "// Olivo Explorer //",
+      "// Vnerdtree //",
       "////////////////////",
       "-: close",
       "o: open in finder",
@@ -901,7 +901,7 @@ let contentProvider = {
   provideTextDocumentContent,
 };
 
-let diagnostics = languages.createDiagnosticCollection("vsnetrw");
+let diagnostics = languages.createDiagnosticCollection("vnerdtree");
 
 /**
  * Propagate diagnostics in files up to the explorer.
@@ -1105,36 +1105,36 @@ function activate(context) {
   );
 
   context.subscriptions.push(
-    commands.registerCommand("vsnetrw.open", openNewExplorer),
-    commands.registerCommand("vsnetrw.openAtCursor", openFileUnderCursor),
+    commands.registerCommand("vnerdtree.open", openNewExplorer),
+    commands.registerCommand("vnerdtree.openAtCursor", openFileUnderCursor),
     commands.registerCommand(
-      "vsnetrw.openAtCursorInHorizontalSplit",
+      "vnerdtree.openAtCursorInHorizontalSplit",
       openFileUnderCursorInHorizontalSplit
     ),
     commands.registerCommand(
-      "vsnetrw.openAtCursorInVerticalSplit",
+      "vnerdtree.openAtCursorInVerticalSplit",
       openFileUnderCursorInVerticalSplit
     ),
-    commands.registerCommand("vsnetrw.openParent", openParentDirectory),
-    commands.registerCommand("vsnetrw.openHome", openHomeDirectory),
-    commands.registerCommand("vsnetrw.openInitial", openInitialDirectory),
+    commands.registerCommand("vnerdtree.openParent", openParentDirectory),
+    commands.registerCommand("vnerdtree.openHome", openHomeDirectory),
+    commands.registerCommand("vnerdtree.openInitial", openInitialDirectory),
     commands.registerCommand(
-      "vsnetrw.revealInFileManager",
+      "vnerdtree.revealInFileManager",
       revealInFileManager
     ),
-    commands.registerCommand("vsnetrw.rename", renameFileUnderCursor),
-    commands.registerCommand("vsnetrw.delete", deleteFileUnderCursor),
-    commands.registerCommand("vsnetrw.create", createFile),
-    commands.registerCommand("vsnetrw.createDir", createDir),
-    commands.registerCommand("vsnetrw.refresh", refresh),
-    commands.registerCommand("vsnetrw.close", closeExplorer),
-    commands.registerCommand("vsnetrw.toggleFullPaths", toggleFullPaths),
-    commands.registerCommand("vsnetrw.toggleBookmarks", toggleBookmarks),
-    commands.registerCommand("vsnetrw.toggleHelp", toggleHelp),
-    commands.registerCommand("vsnetrw.toggleHidden", toggleHidden),
-    commands.registerCommand("vsnetrw.addBookmark", addBookmarkCommand),
-    commands.registerCommand("vsnetrw.deleteBookmark", deleteBookmarkCommand),
-    commands.registerCommand("vsnetrw.jumpToBookmark", jumpToBookmarkCommand)
+    commands.registerCommand("vnerdtree.rename", renameFileUnderCursor),
+    commands.registerCommand("vnerdtree.delete", deleteFileUnderCursor),
+    commands.registerCommand("vnerdtree.create", createFile),
+    commands.registerCommand("vnerdtree.createDir", createDir),
+    commands.registerCommand("vnerdtree.refresh", refresh),
+    commands.registerCommand("vnerdtree.close", closeExplorer),
+    commands.registerCommand("vnerdtree.toggleFullPaths", toggleFullPaths),
+    commands.registerCommand("vnerdtree.toggleBookmarks", toggleBookmarks),
+    commands.registerCommand("vnerdtree.toggleHelp", toggleHelp),
+    commands.registerCommand("vnerdtree.toggleHidden", toggleHidden),
+    commands.registerCommand("vnerdtree.addBookmark", addBookmarkCommand),
+    commands.registerCommand("vnerdtree.deleteBookmark", deleteBookmarkCommand),
+    commands.registerCommand("vnerdtree.jumpToBookmark", jumpToBookmarkCommand)
   );
 }
 
