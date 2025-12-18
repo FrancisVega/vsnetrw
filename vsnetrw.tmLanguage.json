@@ -2,6 +2,15 @@
   "scopeName": "source.vsnetrw",
   "patterns": [
     {
+      "include": "#help"
+    },
+    {
+      "include": "#bookmarkSeparator"
+    },
+    {
+      "include": "#bookmark"
+    },
+    {
       "include": "#gitStatus"
     },
     {
@@ -12,6 +21,18 @@
     }
   ],
   "repository": {
+    "help": {
+      "match": "^(vsnetrw|.*:.*)$",
+      "name": "comment"
+    },
+    "bookmark": {
+      "match": "^\\[[^\\]]+\\]\\s+.*$",
+      "name": "comment"
+    },
+    "bookmarkSeparator": {
+      "match": "^-- BOOKMARKS --$",
+      "name": "comment"
+    },
     "directory": {
       "match": ".*/$",
       "name": "keyword"

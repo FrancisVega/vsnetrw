@@ -1,8 +1,25 @@
+// Foo
 let assert = require("node:assert");
 let path = require("node:path");
 let { homedir, platform } = require("node:os");
 let { spawn } = require("node:child_process");
-let { window, workspace, commands, Uri, EventEmitter, FileType, Selection, languages, Range, Diagnostic, DiagnosticRelatedInformation, Location, ViewColumn, TextEditorRevealType, extensions } = require("vscode");
+let {
+  window,
+  workspace,
+  commands,
+  Uri,
+  EventEmitter,
+  FileType,
+  Selection,
+  languages,
+  Range,
+  Diagnostic,
+  DiagnosticRelatedInformation,
+  Location,
+  ViewColumn,
+  TextEditorRevealType,
+  extensions,
+} = require("vscode");
 
 /**
  * The scheme is used to associate vsnetrw documents with the text content provider
@@ -36,6 +53,32 @@ let initialDirectory = null;
  */
 let showFullPaths = false;
 
+/**
+ * Whether to show bookmarks in the listing.
+ */
+let showBookmarks = true;
+
+/**
+ * Whether to show help text at the top.
+ */
+let showHelp = false;
+
+/**
+ * Whether to show hidden files and directories.
+ */
+let showHidden = true;
+
+/**
+ * Extension context for global state storage.
+ * @type {import("vscode").ExtensionContext | null}
+ */
+let extensionContext = null;
+
+/**
+ * Bookmarks storage: map of bookmark keys (letters/names) to paths.
+ * @type {Map<string, string>}
+ */
+let bookmarks = new Map();
 
 /**
  * Creates a vsnetrw document uri for a given path.
@@ -53,7 +96,10 @@ function createUri(dirName) {
  */
 function getCurrentDir() {
   let editor = window.activeTextEditor;
-  assert(editor && editor.document.uri.scheme === scheme, "Not a vsnetrw editor");
+  assert(
+    editor && editor.document.uri.scheme === scheme,
+    "Not a vsnetrw editor"
+  );
   return editor.document.uri.path;
 }
 
@@ -93,16 +139,40 @@ function toggleFullPaths() {
 }
 
 /**
+ * Toggle visibility of bookmarks in the listing.
+ */
+function toggleBookmarks() {
+  showBookmarks = !showBookmarks;
+  refresh();
+}
+
+/**
+ * Toggle visibility of help text.
+ */
+function toggleHelp() {
+  showHelp = !showHelp;
+  refresh();
+}
+
+/**
+ * Toggle visibility of hidden files and directories.
+ */
+function toggleHidden() {
+  showHidden = !showHidden;
+  refresh();
+}
+
+/**
  * @param {string} prompt
  * @returns {Promise<boolean>}
  */
 function confirm(prompt) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     let inputBox = window.createInputBox();
     let resolveOnHide = true;
     inputBox.validationMessage = `${prompt} (y or n)`;
 
-    let onChange = inputBox.onDidChangeValue(text => {
+    let onChange = inputBox.onDidChangeValue((text) => {
       let ch = text[0].toLowerCase();
       if (ch === "y") {
         resolve(true);
@@ -132,10 +202,11 @@ function moveCursorToPreviousFile() {
   let dir = getCurrentDir();
   let files = editor.document.getText().split("\n");
 
-  let index = files.findIndex(file => (
-    path.join(dir, file) === previousFilePath ||
-    path.join(dir, file) === `${previousFilePath}/`
-  ));
+  let index = files.findIndex(
+    (file) =>
+      path.join(dir, file) === previousFilePath ||
+      path.join(dir, file) === `${previousFilePath}/`
+  );
 
   if (index >= 0) {
     editor.selections = [new Selection(index, 0, index, 0)];
@@ -158,7 +229,7 @@ async function openExplorer(dirName) {
   let doc = await workspace.openTextDocument(uri);
   await languages.setTextDocumentLanguage(doc, languageId);
   let newEditor = await window.showTextDocument(doc, { preview: true });
-  
+
   // Restore saved cursor position if available
   let savedLine = cursorPositions.get(uriString);
   if (savedLine !== undefined && savedLine >= 0) {
@@ -167,7 +238,10 @@ async function openExplorer(dirName) {
         let lineCount = newEditor.document.lineCount;
         let line = Math.min(savedLine, lineCount - 1);
         newEditor.selections = [new Selection(line, 0, line, 0)];
-        newEditor.revealRange(new Range(line, 0, line, 0), TextEditorRevealType.InCenter);
+        newEditor.revealRange(
+          new Range(line, 0, line, 0),
+          TextEditorRevealType.InCenter
+        );
       }
     }, 0);
   }
@@ -210,20 +284,39 @@ async function getFileType(file) {
  * @returns {string} The full path to the file
  */
 function getFilePathFromLine(lineText, baseDir) {
+  // Skip help lines and bookmark separator line
+  if (
+    lineText === "-- BOOKMARKS --" ||
+    lineText.startsWith("vsnetrw") ||
+    lineText.includes(": ")
+  ) {
+    return "";
+  }
+
+  // Handle bookmark entries: [key] /path/to/dir/
+  let bookmarkMatch = lineText.match(/^\[([^\]]+)\]\s+(.+)$/);
+  if (bookmarkMatch) {
+    let bookmarkPath = bookmarkMatch[2];
+    // Remove trailing slash
+    return bookmarkPath.endsWith("/")
+      ? bookmarkPath.slice(0, -1)
+      : bookmarkPath;
+  }
+
   // Remove Git status suffix if present (e.g., " M", " A", " D", " U", " R", " C")
   let text = lineText.replace(/\s+[MADURC]$/, "");
-  
+
   // Handle parent directory reference
   if (text === "../") {
     return path.dirname(baseDir);
   }
-  
+
   // If showing full paths, the line text is already a full path
   if (showFullPaths) {
     // Remove trailing slash for directories
     return text.endsWith("/") ? text.slice(0, -1) : text;
   }
-  
+
   // Otherwise, it's a relative path
   return path.join(baseDir, text);
 }
@@ -248,7 +341,11 @@ function getLinesUnderCursor() {
   let editor = window.activeTextEditor;
   assert(editor, "No active editor");
   let lines = [];
-  for (let i = editor.selection.start.line; i <= editor.selection.end.line; i++) {
+  for (
+    let i = editor.selection.start.line;
+    i <= editor.selection.end.line;
+    i++
+  ) {
     let line = editor.document.lineAt(i);
     lines.push(line.text);
   }
@@ -292,9 +389,13 @@ async function renameFileUnderCursor() {
   let lineText = getLineUnderCursor();
   let base = getCurrentDir();
   let srcPath = getFilePathFromLine(lineText, base);
-  
+
   // Get display name (just the filename part) for the input box
-  let displayName = showFullPaths ? path.basename(srcPath) : lineText.endsWith("/") ? lineText.slice(0, -1) : lineText;
+  let displayName = showFullPaths
+    ? path.basename(srcPath)
+    : lineText.endsWith("/")
+    ? lineText.slice(0, -1)
+    : lineText;
 
   let newName = await window.showInputBox({
     title: "Rename",
@@ -304,7 +405,9 @@ async function renameFileUnderCursor() {
 
   if (!newName) return;
 
-  let dstPath = showFullPaths ? path.join(path.dirname(srcPath), newName) : path.join(base, newName);
+  let dstPath = showFullPaths
+    ? path.join(path.dirname(srcPath), newName)
+    : path.join(base, newName);
   let dstFileType = await getFileType(dstPath);
 
   // Treat renames like "a.txt -> ../" as "a.txt -> ../a.txt"
@@ -337,7 +440,7 @@ async function deleteFileUnderCursor() {
   let base = getCurrentDir();
 
   // Never allow the user to accidentally delete the parent dir
-  files = files.filter(file => file !== "../");
+  files = files.filter((file) => file !== "../");
 
   let ok = await confirm(
     files.length === 1
@@ -378,7 +481,7 @@ async function createFile() {
   if (await doesFileExist(pathToFile)) return;
 
   if (newFileName.endsWith("/")) {
-    await workspace.fs.createDirectory(uri)
+    await workspace.fs.createDirectory(uri);
     refresh();
   } else {
     await workspace.fs.writeFile(uri, new Uint8Array());
@@ -427,26 +530,26 @@ function getInitialDir() {
 async function openNewExplorer(dir = getInitialDir()) {
   // For some reason vim.normalModeKeyBindings pass an empty array
   if (Array.isArray(dir)) dir = getInitialDir();
-  
+
   // If vsnetrw is already open, close it
   let editor = window.activeTextEditor;
   if (editor?.document.uri.scheme === scheme) {
     await closeExplorer();
     return;
   }
-  
+
   // Save initial directory if this is the first time opening in this session
   if (initialDirectory === null) {
     initialDirectory = dir;
   }
-  
+
   // Otherwise open it
   await openExplorer(dir);
 }
 
 /**
  * Attempt to open the file that is currently under the cursor.
- * 
+ *
  * If there is a file under the cursor, it will open in a vscode text
  * editor. If there is a directory under the cursor, then it will open in a
  * new vsnetrw document.
@@ -454,6 +557,15 @@ async function openNewExplorer(dir = getInitialDir()) {
  */
 async function openFileUnderCursor(viewColumn) {
   let lineText = getLineUnderCursor();
+
+  // Check if it's a bookmark entry
+  let bookmarkMatch = lineText.match(/^\[([^\]]+)\]/);
+  if (bookmarkMatch) {
+    // Navigate to bookmark
+    await jumpToBookmark(bookmarkMatch[1]);
+    return;
+  }
+
   let basePath = getCurrentDir();
   let newPath = getFilePathFromLine(lineText, basePath);
   let uri = Uri.file(newPath);
@@ -505,10 +617,9 @@ async function openHomeDirectory() {
 
   if (editor) {
     saveCursorPosition();
-    let workspaceFolder = (
+    let workspaceFolder =
       workspace.getWorkspaceFolder(editor.document.uri) ||
-      workspace.workspaceFolders?.[0]
-    );
+      workspace.workspaceFolders?.[0];
 
     if (workspaceFolder) {
       folder = workspaceFolder.uri.fsPath;
@@ -535,11 +646,84 @@ async function openInitialDirectory() {
 }
 
 /**
+ * Load bookmarks from global state.
+ */
+function loadBookmarks() {
+  if (!extensionContext) return;
+
+  let savedBookmarks = extensionContext.globalState.get(
+    "vsnetrw.bookmarks",
+    {}
+  );
+  bookmarks.clear();
+  for (let [key, bookmarkPath] of Object.entries(
+    /** @type {Record<string, string>} */ (savedBookmarks)
+  )) {
+    bookmarks.set(key, bookmarkPath);
+  }
+}
+
+/**
+ * Save bookmarks to global state.
+ */
+async function saveBookmarks() {
+  if (!extensionContext) return;
+
+  /** @type {Record<string, string>} */
+  let bookmarksObj = {};
+  for (let [key, bookmarkPath] of bookmarks.entries()) {
+    bookmarksObj[key] = bookmarkPath;
+  }
+  await extensionContext.globalState.update("vsnetrw.bookmarks", bookmarksObj);
+}
+
+/**
+ * Add a bookmark.
+ * @param {string} key The bookmark key (letter or name)
+ * @param {string} bookmarkPath The path to bookmark
+ */
+async function addBookmark(key, bookmarkPath) {
+  bookmarks.set(key, bookmarkPath);
+  await saveBookmarks();
+}
+
+/**
+ * Delete a bookmark.
+ * @param {string} key The bookmark key to delete
+ */
+async function deleteBookmark(key) {
+  bookmarks.delete(key);
+  await saveBookmarks();
+}
+
+/**
+ * Get all bookmarks.
+ * @returns {Map<string, string>} Map of bookmark keys to paths
+ */
+function getBookmarks() {
+  return bookmarks;
+}
+
+/**
+ * Jump to a bookmark.
+ * @param {string} key The bookmark key to jump to
+ */
+async function jumpToBookmark(key) {
+  let bookmarkPath = bookmarks.get(key);
+  if (bookmarkPath) {
+    saveCursorPosition();
+    await openExplorer(bookmarkPath);
+  } else {
+    window.showWarningMessage(`Bookmark "${key}" not found`);
+  }
+}
+
+/**
  * Opens the current directory in Finder (macOS) or File Explorer (Windows/Linux).
  */
 async function revealInFileManager() {
   let dir = getCurrentDir();
-  
+
   try {
     if (platform() === "darwin") {
       // macOS: use 'open' command
@@ -587,9 +771,11 @@ async function getGitStatus(fileUri, baseDir) {
     let filePath = fileUri.fsPath;
 
     // Check index changes (staged) first, as staged takes priority
-    let indexChange = repository.state.indexChanges.find((/** @type {any} */ change) => {
-      return change.uri.fsPath === filePath;
-    });
+    let indexChange = repository.state.indexChanges.find(
+      (/** @type {any} */ change) => {
+        return change.uri.fsPath === filePath;
+      }
+    );
 
     if (indexChange) {
       // Status values: 1=Modified, 2=Added, 3=Deleted, 5=Renamed, 6=Copied
@@ -600,9 +786,11 @@ async function getGitStatus(fileUri, baseDir) {
     }
 
     // Check working tree changes (unstaged)
-    let workingTreeChange = repository.state.workingTreeChanges.find((/** @type {any} */ change) => {
-      return change.uri.fsPath === filePath;
-    });
+    let workingTreeChange = repository.state.workingTreeChanges.find(
+      (/** @type {any} */ change) => {
+        return change.uri.fsPath === filePath;
+      }
+    );
 
     if (workingTreeChange) {
       // Status values: 1=Modified, 2=Added, 3=Deleted, 4=Untracked, 5=Renamed, 6=Copied
@@ -630,26 +818,77 @@ async function provideTextDocumentContent(documentUri) {
   let pathUri = Uri.file(pathName);
   let results = await workspace.fs.readDirectory(pathUri);
 
+  // Filter hidden files if showHidden is false
+  if (!showHidden) {
+    results = results.filter(([name, type]) => !name.startsWith("."));
+  }
+
   results.sort(([aName, aType], [bName, bType]) => {
-    return aType & FileType.Directory ?
-      bType & FileType.Directory ? 0 : -1 :
-      aName < bName ? -1 : 1;
+    return aType & FileType.Directory
+      ? bType & FileType.Directory
+        ? 0
+        : -1
+      : aName < bName
+      ? -1
+      : 1;
   });
 
-  let listings = await Promise.all(results.map(async ([name, type]) => {
-    let filePath = path.join(pathName, name);
-    let fileUri = Uri.file(filePath);
-    let gitStatus = await getGitStatus(fileUri, pathName);
-    
-    let fileName = showFullPaths 
-      ? (type & FileType.Directory ? `${filePath}/` : filePath)
-      : (type & FileType.Directory ? `${name}/` : name);
-    
-    return gitStatus ? `${fileName} ${gitStatus}` : fileName;
-  }));
+  let listings = await Promise.all(
+    results.map(async ([name, type]) => {
+      let filePath = path.join(pathName, name);
+      let fileUri = Uri.file(filePath);
+      let gitStatus = await getGitStatus(fileUri, pathName);
+
+      let fileName = showFullPaths
+        ? type & FileType.Directory
+          ? `${filePath}/`
+          : filePath
+        : type & FileType.Directory
+        ? `${name}/`
+        : name;
+
+      return gitStatus ? `${fileName} ${gitStatus}` : fileName;
+    })
+  );
 
   let hasParent = path.dirname(pathName) !== pathName;
   if (hasParent) listings.unshift("../");
+
+  // Add help text at the beginning if enabled
+  if (showHelp) {
+    let helpText = [
+      "////////////////////",
+      "// Olivo Explorer //",
+      "////////////////////",
+      "-: close",
+      "o: open in finder",
+      ".: back to root",
+      "b: bookmarks",
+      "shift+b: toggle bookmarks",
+      "m: add bookmark",
+      "shift+m: delete bookmark",
+      "r: rename",
+      "%: create",
+      "d: create dir",
+      "D/delete: delete",
+      "shift+p: toggle full paths",
+      "ctrl+l: refresh",
+    ];
+    listings.unshift(...helpText);
+  }
+
+  // Add bookmarks at the end if enabled
+  if (showBookmarks && bookmarks.size > 0) {
+    // Sort bookmarks by key for consistent display
+    let sortedBookmarks = Array.from(bookmarks.entries()).sort((a, b) =>
+      a[0].localeCompare(b[0])
+    );
+    let bookmarkListings = sortedBookmarks.map(
+      ([key, bookmarkPath]) => `[${key}] ${bookmarkPath}/`
+    );
+    listings.push("-- BOOKMARKS --");
+    listings.push(...bookmarkListings);
+  }
 
   return listings.join("\n");
 }
@@ -673,26 +912,30 @@ function refreshDiagnostics() {
   let document = window.activeTextEditor.document;
   let base = getCurrentDir();
 
-  let uris = document.getText().split("\n").map(name => {
-    let pathToFile = path.join(base, name);
-    return Uri.file(pathToFile);
-  })
+  let uris = document
+    .getText()
+    .split("\n")
+    .map((name) => {
+      let pathToFile = path.join(base, name);
+      return Uri.file(pathToFile);
+    });
 
   let ownDiagnostics = uris.flatMap((uri, line) => {
     let childDiagnostics = languages.getDiagnostics(uri);
     if (childDiagnostics.length === 0) return [];
 
-    let severities = childDiagnostics.map(diagnostic => diagnostic.severity);
+    let severities = childDiagnostics.map((diagnostic) => diagnostic.severity);
     let severity = Math.min(...severities);
     let name = path.basename(uri.fsPath);
     let range = new Range(line, 0, line, name.length);
 
     let diagnostic = new Diagnostic(
-      range, `${childDiagnostics.length} problems in this file`,
+      range,
+      `${childDiagnostics.length} problems in this file`,
       severity
     );
 
-    diagnostic.relatedInformation = childDiagnostics.map(childDiagnostic => {
+    diagnostic.relatedInformation = childDiagnostics.map((childDiagnostic) => {
       return new DiagnosticRelatedInformation(
         new Location(uri, childDiagnostic.range),
         childDiagnostic.message
@@ -715,11 +958,146 @@ function onChangeActiveTextEditor(editor) {
 }
 
 /**
+ * Add a bookmark for the current directory or file under cursor.
+ * @param {string | undefined} [key] Optional bookmark key (letter). If not provided, prompts for key or uses directory/file name.
+ */
+async function addBookmarkCommand(/** @type {string | undefined} */ key) {
+  let editor = window.activeTextEditor;
+  if (!editor || editor.document.uri.scheme !== scheme) {
+    window.showWarningMessage(
+      "Bookmarks can only be added from within the explorer"
+    );
+    return;
+  }
+
+  let bookmarkPath;
+  let lineText = getLineUnderCursor();
+
+  // Check if it's a bookmark entry - if so, delete it instead
+  let bookmarkMatch = lineText.match(/^\[([^\]]+)\]/);
+  if (bookmarkMatch) {
+    // User is on a bookmark line, delete it
+    await deleteBookmark(bookmarkMatch[1]);
+    window.showInformationMessage(`Bookmark "${bookmarkMatch[1]}" deleted`);
+    refresh();
+    return;
+  }
+
+  // Get the path from the current line
+  let baseDir = getCurrentDir();
+  bookmarkPath = getFilePathFromLine(lineText, baseDir);
+
+  // Check if it's a directory or file
+  let fileType = await getFileType(bookmarkPath);
+  if (!fileType) {
+    window.showErrorMessage(`Path does not exist: ${bookmarkPath}`);
+    return;
+  }
+
+  // If it's a file, use its parent directory
+  if (!(fileType & FileType.Directory)) {
+    bookmarkPath = path.dirname(bookmarkPath);
+  }
+
+  // If key not provided, prompt for it or use basename
+  if (!key) {
+    key = await window.showInputBox({
+      prompt:
+        "Enter bookmark key (letter or name). Leave empty to use directory name.",
+      placeHolder: path.basename(bookmarkPath),
+    });
+
+    if (key === undefined) {
+      return; // User cancelled
+    }
+
+    if (!key) {
+      key = path.basename(bookmarkPath);
+    }
+  }
+
+  // Check if bookmark already exists
+  if (bookmarks.has(key)) {
+    let overwrite = await window.showWarningMessage(
+      `Bookmark "${key}" already exists. Overwrite?`,
+      { modal: true },
+      "Overwrite"
+    );
+    if (!overwrite) {
+      return;
+    }
+  }
+
+  await addBookmark(key, bookmarkPath);
+  window.showInformationMessage(`Bookmark "${key}" added: ${bookmarkPath}`);
+  refresh();
+}
+
+/**
+ * Delete a bookmark.
+ */
+async function deleteBookmarkCommand() {
+  let editor = window.activeTextEditor;
+  if (!editor || editor.document.uri.scheme !== scheme) {
+    window.showWarningMessage(
+      "Bookmarks can only be deleted from within the explorer"
+    );
+    return;
+  }
+
+  let lineText = getLineUnderCursor();
+  let bookmarkMatch = lineText.match(/^\[([^\]]+)\]/);
+
+  if (!bookmarkMatch) {
+    window.showWarningMessage("Cursor must be on a bookmark line");
+    return;
+  }
+
+  let key = bookmarkMatch[1];
+  await deleteBookmark(key);
+  window.showInformationMessage(`Bookmark "${key}" deleted`);
+  refresh();
+}
+
+/**
+ * Jump to a bookmark by key.
+ * @param {string | undefined} [key] Optional bookmark key. If not provided, shows quick pick.
+ */
+async function jumpToBookmarkCommand(/** @type {string | undefined} */ key) {
+  if (!key) {
+    // Show quick pick to select bookmark
+    if (bookmarks.size === 0) {
+      window.showWarningMessage("No bookmarks available");
+      return;
+    }
+
+    let items = Array.from(bookmarks.entries()).map(([k, p]) => ({
+      label: `[${k}]`,
+      description: p,
+      key: k,
+    }));
+
+    let selected = await window.showQuickPick(items, {
+      placeHolder: "Select bookmark to jump to",
+    });
+
+    if (selected) {
+      await jumpToBookmark(selected.key);
+    }
+  } else {
+    await jumpToBookmark(key);
+  }
+}
+
+/**
  * @param {import("vscode").ExtensionContext} context
  */
 function activate(context) {
+  extensionContext = context;
+  loadBookmarks();
+
   context.subscriptions.push(
-    workspace.registerTextDocumentContentProvider(scheme, contentProvider),
+    workspace.registerTextDocumentContentProvider(scheme, contentProvider)
   );
 
   context.subscriptions.push(
@@ -729,12 +1107,21 @@ function activate(context) {
   context.subscriptions.push(
     commands.registerCommand("vsnetrw.open", openNewExplorer),
     commands.registerCommand("vsnetrw.openAtCursor", openFileUnderCursor),
-    commands.registerCommand("vsnetrw.openAtCursorInHorizontalSplit", openFileUnderCursorInHorizontalSplit),
-    commands.registerCommand("vsnetrw.openAtCursorInVerticalSplit", openFileUnderCursorInVerticalSplit),
+    commands.registerCommand(
+      "vsnetrw.openAtCursorInHorizontalSplit",
+      openFileUnderCursorInHorizontalSplit
+    ),
+    commands.registerCommand(
+      "vsnetrw.openAtCursorInVerticalSplit",
+      openFileUnderCursorInVerticalSplit
+    ),
     commands.registerCommand("vsnetrw.openParent", openParentDirectory),
     commands.registerCommand("vsnetrw.openHome", openHomeDirectory),
     commands.registerCommand("vsnetrw.openInitial", openInitialDirectory),
-    commands.registerCommand("vsnetrw.revealInFileManager", revealInFileManager),
+    commands.registerCommand(
+      "vsnetrw.revealInFileManager",
+      revealInFileManager
+    ),
     commands.registerCommand("vsnetrw.rename", renameFileUnderCursor),
     commands.registerCommand("vsnetrw.delete", deleteFileUnderCursor),
     commands.registerCommand("vsnetrw.create", createFile),
@@ -742,6 +1129,12 @@ function activate(context) {
     commands.registerCommand("vsnetrw.refresh", refresh),
     commands.registerCommand("vsnetrw.close", closeExplorer),
     commands.registerCommand("vsnetrw.toggleFullPaths", toggleFullPaths),
+    commands.registerCommand("vsnetrw.toggleBookmarks", toggleBookmarks),
+    commands.registerCommand("vsnetrw.toggleHelp", toggleHelp),
+    commands.registerCommand("vsnetrw.toggleHidden", toggleHidden),
+    commands.registerCommand("vsnetrw.addBookmark", addBookmarkCommand),
+    commands.registerCommand("vsnetrw.deleteBookmark", deleteBookmarkCommand),
+    commands.registerCommand("vsnetrw.jumpToBookmark", jumpToBookmarkCommand)
   );
 }
 

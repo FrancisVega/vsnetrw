@@ -47,6 +47,21 @@
 				"category": "vsnetrw"
 			},
 			{
+				"command": "vsnetrw.toggleBookmarks",
+				"title": "Toggle Bookmarks",
+				"category": "vsnetrw"
+			},
+			{
+				"command": "vsnetrw.toggleHelp",
+				"title": "Toggle Help",
+				"category": "vsnetrw"
+			},
+			{
+				"command": "vsnetrw.toggleHidden",
+				"title": "Toggle Hidden Files",
+				"category": "vsnetrw"
+			},
+			{
 				"command": "vsnetrw.openInitial",
 				"title": "Open Initial Directory",
 				"category": "vsnetrw"
@@ -54,6 +69,21 @@
 			{
 				"command": "vsnetrw.revealInFileManager",
 				"title": "Reveal in File Manager",
+				"category": "vsnetrw"
+			},
+			{
+				"command": "vsnetrw.addBookmark",
+				"title": "Add Bookmark",
+				"category": "vsnetrw"
+			},
+			{
+				"command": "vsnetrw.deleteBookmark",
+				"title": "Delete Bookmark",
+				"category": "vsnetrw"
+			},
+			{
+				"command": "vsnetrw.jumpToBookmark",
+				"title": "Jump to Bookmark",
 				"category": "vsnetrw"
 			}
 		],
@@ -126,6 +156,36 @@
 			{
 				"command": "vsnetrw.revealInFileManager",
 				"key": "o",
+				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+			},
+			{
+				"command": "vsnetrw.addBookmark",
+				"key": "m",
+				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+			},
+			{
+				"command": "vsnetrw.deleteBookmark",
+				"key": "shift+m",
+				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+			},
+			{
+				"command": "vsnetrw.jumpToBookmark",
+				"key": "b",
+				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+			},
+			{
+				"command": "vsnetrw.toggleBookmarks",
+				"key": "shift+b",
+				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+			},
+			{
+				"command": "vsnetrw.toggleHelp",
+				"key": "shift+h",
+				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
+			},
+			{
+				"command": "vsnetrw.toggleHidden",
+				"key": "i",
 				"when": "editorTextFocus && editorLangId == vsnetrw && vim.mode =~ /^(?!SearchInProgressMode|CommandlineInProgress).*$/"
 			}
 		],

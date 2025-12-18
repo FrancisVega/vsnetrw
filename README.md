@@ -11,6 +11,10 @@ A [split file explorer][oil-and-vinegar] for vscode, inspired by [netrw][netrw],
 - **Full paths toggle**: Toggle between showing just file names or full paths with <kbd>Shift+P</kbd>
 - **Cursor position memory**: Automatically saves and restores cursor position per directory
 - **Initial directory navigation**: Jump back to the first directory you opened with <kbd>.</kbd>
+- **Bookmarks**: Save and quickly navigate to frequently used directories (similar to NerdTree)
+- **Help system**: Toggle a help overlay showing all available shortcuts with <kbd>Shift+H</kbd>
+- **Hidden files toggle**: Show or hide hidden files and directories with <kbd>I</kbd>
+- **File manager integration**: Open current directory in Finder/Explorer with <kbd>o</kbd>
 - **Smart keybindings**: Won't interfere when typing in search boxes or input fields
 
 ## Shortcuts
@@ -32,6 +36,7 @@ Use `vsnetrw.open` (or press <kbd>-</kbd> when no editor is active) to open a fi
 | <kbd>backspace</kbd> | `vsnetrw.openParent` | Jump to the parent directory |
 | <kbd>.</kbd> | `vsnetrw.openInitial` | Jump back to the initial directory where you first opened the explorer |
 | <kbd>~</kbd> | `vsnetrw.openHome` | Jump to the root of the current workspace folder, or user's homedir |
+| <kbd>o</kbd> | `vsnetrw.revealInFileManager` | Open the current directory in Finder (macOS), Explorer (Windows), or file manager (Linux) |
 
 ### File Operations
 
@@ -48,7 +53,18 @@ Use `vsnetrw.open` (or press <kbd>-</kbd> when no editor is active) to open a fi
 | Default Shortcut | Command | Description |
 | ---------------- | ------- | ----------- |
 | <kbd>Shift+P</kbd> | `vsnetrw.toggleFullPaths` | Toggle between showing file names only or full paths |
+| <kbd>I</kbd> | `vsnetrw.toggleHidden` | Toggle visibility of hidden files and directories |
+| <kbd>Shift+H</kbd> | `vsnetrw.toggleHelp` | Toggle help overlay showing all available shortcuts |
 | <kbd>ctrl+l</kbd> | `vsnetrw.refresh` | Refresh the directory listing |
+
+### Bookmarks
+
+| Default Shortcut | Command | Description |
+| ---------------- | ------- | ----------- |
+| <kbd>m</kbd> | `vsnetrw.addBookmark` | Add a bookmark for the current directory (or delete if cursor is on a bookmark line) |
+| <kbd>Shift+M</kbd> | `vsnetrw.deleteBookmark` | Delete the bookmark on the current line |
+| <kbd>b</kbd> | `vsnetrw.jumpToBookmark` | Jump to a bookmark (shows quick pick menu) |
+| <kbd>Shift+B</kbd> | `vsnetrw.toggleBookmarks` | Toggle visibility of bookmarks in the listing |
 
 ## VSCodeVim Keybindings
 To make `-` open an explorer from any file (like `vim-vinegar`) add the following binding to your `vim.normalModeKeyBindings`.
