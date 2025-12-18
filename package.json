@@ -23,9 +23,6 @@
 		"build": "tsc && vsce package",
 		"local-install": "yarn build && code --install-extension *.vsix"
 	},
-	"activationEvents": [
-		"onCommand:vnerdtree.open"
-	],
 	"contributes": {
 		"languages": [
 			{
