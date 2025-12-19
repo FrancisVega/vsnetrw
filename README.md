@@ -72,17 +72,3 @@ To make `-` open an explorer from any file (like `vim-vinegar`) add the followin
   "when": "editorLangId != vnerdtree"
 }
 ```
-
-This binding can't be provided as part of the extension because native VSCode's keybindings will accidentally trigger in undesirable instances (e.g. pressing `r-` in normal mode).
-
-## Installation
-vnerdtree can be installed from the [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=danprince.vnerdtree).
-
-You can also download a VSIX from [releases](https://github.com/danprince/vsnetrw/releases) and install it by running `>Extensions: Install from VSIX`.
-
-[netrw]: https://www.vim.org/scripts/script.php?script_id=1075
-[vinegar]: https://github.com/tpope/vim-vinegar
-[dired]: https://www.emacswiki.org/emacs/DiredMode
-[dirvish]: https://github.com/justinmk/vim-dirvish
-[nerdtree]: https://github.com/preservim/nerdtree
-[oil-and-vinegar]: http://vimcasts.org/blog/2013/01/oil-and-vinegar-split-windows-and-project-drawer/
