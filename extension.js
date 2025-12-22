@@ -857,21 +857,24 @@ async function provideTextDocumentContent(documentUri) {
   // Add help text at the beginning if enabled
   if (showHelp) {
     let helpText = [
-      "////////////////////",
-      "// Vnerdtree //",
-      "////////////////////",
+      "Vnerdtree",
+      "- - - - -",
       "-: close",
-      "o: open in finder",
       ".: back to root",
-      "b: bookmarks",
-      "shift+b: toggle bookmarks",
+      "o: open in finder",
+      "-- bookmarks --",
+      "b: open bookmarks",
       "m: add bookmark",
+      "shift+b: toggle bookmarks",
       "shift+m: delete bookmark",
-      "r: rename",
+      "-- files and dirs  --",
+      "shift+r: rename",
       "%: create",
       "d: create dir",
-      "D/delete: delete",
+      "shift+d/delete: delete",
+      "-- view --",
       "shift+p: toggle full paths",
+      "i: toggle hidden files",
       "ctrl+l: refresh",
     ];
     listings.unshift(...helpText);

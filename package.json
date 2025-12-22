@@ -3,7 +3,6 @@
 	"version": "0.0.1",
 	"description": "A minimal view of NERDTree for VSCode",
 	"publisher": "vnerdtree",
-	"icon": "icon.png",
 	"author": "Hisco Vega",
 	"repository": {
 		"type": "git",
@@ -24,11 +23,8 @@
 	},
 	"scripts": {
 		"build": "tsc && npx @vscode/vsce package",
-		"install": "yarn build && code --install-extension *.vsix"
+		"install": "yarn build && code --install-extension *.vsix && cursor --install-extension *.vsix"
 	},
-	"activationEvents": [
-		"onCommand:vnerdtree.open"
-	],
 	"contributes": {
 		"languages": [
 			{
@@ -210,7 +206,7 @@
 	},
 	"devDependencies": {
 		"@types/node": "^20.0.0",
-		"@types/vscode": "^1.0.0",
+		"@types/vscode": "^1.80.0",
 		"typescript": "^5.0.0",
 		"@vscode/vsce": "^2.0.0"
 	}
